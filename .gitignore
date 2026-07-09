@@ -1,0 +1,24 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+!.env.production
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+venv/
+env/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
+dist/
+
+# Build and Temp
+/tmp/
+temp_data/
