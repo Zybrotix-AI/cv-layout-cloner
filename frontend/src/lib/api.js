@@ -54,6 +54,7 @@ export async function convertCV(contentCV, sampleCV, onProgress) {
     });
 
     xhr.open('POST', `${API_BASE}/convert`);
+    xhr.setRequestHeader('ngrok-skip-browser-warning', '69420');
     xhr.timeout = 180000; // 3 minute timeout
     xhr.send(formData);
 
@@ -95,7 +96,9 @@ export function getDownloadUrl(path) {
  * @returns {Promise<Object>} Health status
  */
 export async function checkHealth() {
-  const response = await fetch(`${API_BASE}/health`);
+  const response = await fetch(`${API_BASE}/health`, {
+    headers: { 'ngrok-skip-browser-warning': '69420' }
+  });
   if (!response.ok) throw new Error('Backend health check failed');
   return response.json();
 }
