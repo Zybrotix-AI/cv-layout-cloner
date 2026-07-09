@@ -9,6 +9,7 @@ import base64
 from pathlib import Path
 from google import genai
 from google.genai import types
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 from app.config import settings
 from app.models.schemas import CanonicalCV
@@ -31,6 +32,11 @@ def _get_client() -> genai.Client:
     return genai.Client(api_key=settings.gemini_api_key)
 
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    reraise=True
+)
 async def extract_canonical_cv(raw_text: str) -> CanonicalCV:
     """
     Send raw extracted text to Gemini to normalize into the canonical CV JSON schema.
@@ -65,6 +71,11 @@ async def extract_canonical_cv(raw_text: str) -> CanonicalCV:
         raise ValueError(f"Failed to parse CV content: {e}")
 
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    reraise=True
+)
 async def extract_canonical_cv_from_image(image_bytes: bytes, media_type: str = "image/png") -> CanonicalCV:
     """
     Send a CV image directly to Gemini for content extraction.

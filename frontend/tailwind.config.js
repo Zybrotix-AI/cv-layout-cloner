@@ -42,25 +42,24 @@ export default {
         'shimmer': 'shimmer 2s linear infinite',
       },
       keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
+        'fade-in': {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'pulse-glow': {
+          '0%, 100%': { opacity: '1', boxShadow: '0 0 0 0 rgba(79, 70, 229, 0.4)' },
+          '50%': { opacity: '0.8', boxShadow: '0 0 20px 0 rgba(79, 70, 229, 0.2)' },
         },
         slideUp: {
           '0%': { opacity: '0', transform: 'translateY(20px)' },
           '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        pulseGlow: {
-          '0%, 100%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.15)' },
-          '50%': { boxShadow: '0 0 40px rgba(99, 102, 241, 0.35)' },
         },
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-6px)' },
         },
         shimmer: {
-          '0%': { backgroundPosition: '-200% 0' },
-          '100%': { backgroundPosition: '200% 0' },
+          '100%': { transform: 'translateX(200%)' },
         },
       },
       backdropBlur: {

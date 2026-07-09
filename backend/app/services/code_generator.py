@@ -6,6 +6,7 @@ from typing import Optional
 
 from google import genai
 from google.genai import types
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.config import settings
 from app.models.schemas import CanonicalCV
@@ -28,6 +29,11 @@ REQUIREMENTS:
 def _get_client() -> genai.Client:
     return genai.Client(api_key=settings.gemini_api_key)
 
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=2, max=10),
+    reraise=True
+)
 async def generate_python_docx_script(
     sample_file_path: Path,
     canonical_cv: CanonicalCV
