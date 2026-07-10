@@ -184,6 +184,14 @@ def _attempt_auto_fix(code: str, error_msg: str) -> str:
         # Fix hex() calls on RGBColor
         fixed = re.sub(r'\.hex\(\)', '', fixed)
 
+    # Fix iter_cells hallucination on CT_Tbl
+    if "AttributeError" in error_msg and "iter_cells" in error_msg:
+        fixed = re.sub(r'\.iter_cells\(\)', r".xpath('.//w:tc')", fixed)
+
+    # Fix hyperlink hallucination on Run
+    if "AttributeError" in error_msg and "hyperlink" in error_msg:
+        fixed = re.sub(r'(\w+)\.hyperlink(?:\.address)?\s*=\s*(.+)', r'\1.text = str(\2).replace("mailto:", "")', fixed)
+
     # Fix font.color has no setter
     if "has no setter" in error_msg and "color" in error_msg:
         fixed = re.sub(
