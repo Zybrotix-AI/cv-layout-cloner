@@ -23,13 +23,39 @@ SYSTEM_INSTRUCTION = (
     "If a field is not present in the text, use empty strings for strings and empty arrays for arrays. "
     "For experience entries, keep the chronological order from the CV. "
     "For bullets, capture each bullet point as a separate string. "
-    "For skills, split comma-separated or listed skills into individual strings."
+    "For skills, split comma-separated or listed skills into individual strings.\n"
+    "You MUST return valid JSON matching the following schema structure exactly:\n"
+    "{\n"
+    "  'name': 'str',\n"
+    "  'title': 'str',\n"
+    "  'contact': {'email': 'str', 'phone': 'str', 'location': 'str', 'linkedin': 'str', 'website': 'str'},\n"
+    "  'summary': 'str',\n"
+    "  'experience': [{'company': 'str', 'role': 'str', 'dates': 'str', 'bullets': ['str']}],\n"
+    "  'education': [{'institution': 'str', 'degree': 'str', 'dates': 'str'}],\n"
+    "  'skills': ['str'],\n"
+    "  'projects': [{'name': 'str', 'description': 'str'}],\n"
+    "  'certifications': ['str']\n"
+    "}"
 )
 
 
+import itertools
+
+# Global iterator for API keys
+_api_key_cycle = None
+
 def _get_client() -> genai.Client:
-    """Create a Google GenAI client instance."""
-    return genai.Client(api_key=settings.gemini_api_key)
+    """Create a Google GenAI client instance using round-robin API keys."""
+    global _api_key_cycle
+    if _api_key_cycle is None:
+        # Split by comma and strip whitespace
+        keys = [k.strip() for k in settings.gemini_api_key.split(",") if k.strip()]
+        if not keys:
+            raise ValueError("No Gemini API keys found in configuration.")
+        _api_key_cycle = itertools.cycle(keys)
+    
+    current_key = next(_api_key_cycle)
+    return genai.Client(api_key=current_key)
 
 
 @retry(
@@ -58,7 +84,6 @@ async def extract_canonical_cv(raw_text: str) -> CanonicalCV:
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_INSTRUCTION,
                 response_mime_type="application/json",
-                response_schema=CanonicalCV,
             ),
         )
         # Parse the JSON response directly into the Pydantic model
@@ -100,7 +125,6 @@ async def extract_canonical_cv_from_image(image_bytes: bytes, media_type: str = 
             config=types.GenerateContentConfig(
                 system_instruction=SYSTEM_INSTRUCTION,
                 response_mime_type="application/json",
-                response_schema=CanonicalCV,
             ),
         )
         if response.text:

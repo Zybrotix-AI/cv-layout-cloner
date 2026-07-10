@@ -24,10 +24,21 @@ REQUIREMENTS:
 5. Replicate the visual design as accurately as possible: margins, fonts, font sizes, colors (using RGBColor), bold/italic weights, tables for alignment, horizontal lines, etc.
 6. If the layout uses a multi-column structure or sidebar, use `python-docx` tables with invisible borders to achieve the grid layout.
 7. Return ONLY valid Python code. Do not include markdown fences (like ```python) or any preamble. The output must be directly executable.
+
+CRITICAL PYTHON-DOCX API RULES (DO NOT VIOLATE):
+- RGBColor(r, g, b) IS the color value. It has NO `.rgb` attribute. Use str(color_var) to get the hex, NOT color_var.rgb.hex().
+- To set font color: use `run.font.color.rgb = RGBColor(r, g, b)`. NEVER use `font.color = RGBColor(...)` — the color property has NO setter. You must access `.color.rgb`.
+- When setting border colors in OxmlElement, use a literal hex string like '000000', NOT a method call.
+- Always import OxmlElement: `from docx.oxml import OxmlElement`
+- Always import qn exactly like this: `from docx.oxml.ns import qn`
+- When accessing paragraph.runs[0], first check that runs is not empty.
+- Use `paragraph.add_run("")` if you need to ensure a run exists.
+- For horizontal lines, create a paragraph border using OxmlElement with proper namespace.
+- NEVER wrap `child.tag` in `qn()` when checking element tags (e.g. `if child.tag == qn('w:tblBorders')`). `child.tag` is already namespaced. Calling `qn(child.tag)` will cause `KeyError: '{http'`.
+- `OxmlElement` (like `CT_PPr`) does NOT have an `insert_before` method. Use `.append(element)` instead.
 """
 
-def _get_client() -> genai.Client:
-    return genai.Client(api_key=settings.gemini_api_key)
+from app.services.gemini_client import _get_client
 
 @retry(
     stop=stop_after_attempt(3),

@@ -66,32 +66,33 @@ class FileType(str, Enum):
 
 class ContactInfo(BaseModel):
     """Contact information extracted from a CV."""
-    email: str = ""
-    phone: str = ""
-    location: str = ""
-    linkedin: str = ""
-    website: str = ""
+    email: str
+    phone: str
+    location: str
+    linkedin: str
+    website: str
+
 
 
 class ExperienceEntry(BaseModel):
     """A single job/work experience entry."""
-    company: str = ""
-    role: str = ""
-    dates: str = ""
-    bullets: list[str] = Field(default_factory=list)
+    company: str
+    role: str
+    dates: str
+    bullets: list[str]
 
 
 class EducationEntry(BaseModel):
     """A single education entry."""
-    institution: str = ""
-    degree: str = ""
-    dates: str = ""
+    institution: str
+    degree: str
+    dates: str
 
 
 class ProjectEntry(BaseModel):
     """A single project entry."""
-    name: str = ""
-    description: str = ""
+    name: str
+    description: str
 
 
 class CanonicalCV(BaseModel):
@@ -99,15 +100,15 @@ class CanonicalCV(BaseModel):
     Canonical CV data schema. All content CVs (docx, pdf, image) are
     normalized into this exact structure before mapping to template.
     """
-    name: str = ""
-    title: str = ""
-    contact: ContactInfo = Field(default_factory=ContactInfo)
-    summary: str = ""
-    experience: list[ExperienceEntry] = Field(default_factory=list)
-    education: list[EducationEntry] = Field(default_factory=list)
-    skills: list[str] = Field(default_factory=list)
-    projects: list[ProjectEntry] = Field(default_factory=list)
-    certifications: list[str] = Field(default_factory=list)
+    name: str
+    title: str
+    contact: ContactInfo
+    summary: str
+    experience: list[ExperienceEntry]
+    education: list[EducationEntry]
+    skills: list[str]
+    projects: list[ProjectEntry]
+    certifications: list[str]
 
 
 # ==============================================================================
