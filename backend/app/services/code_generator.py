@@ -31,6 +31,7 @@ CRITICAL PYTHON-DOCX API RULES (DO NOT VIOLATE):
 - `OxmlElement` (like `tblBorders`) DOES NOT have a `.first_child_found_in` method. Use `.find(qn(tag))` instead.
 - `OxmlElement` DOES NOT accept a `text` keyword argument (e.g. `OxmlElement('w:t', text=...)` is INVALID). You must set it after creation: `wt = OxmlElement('w:t'); wt.text = '...'`
 - When generating the hardcoded JSON data dictionary, DOUBLE CHECK your commas! A missing comma will cause a SyntaxError.
+- CRITICAL: When calling helper functions or creating lists/dictionaries across multiple lines, YOU MUST INCLUDE COMMAS between arguments! (e.g., `func(arg1, \n arg2)` NOT `func(arg1 \n arg2)`). A missing comma will cause a SyntaxError and fail the build!
 - When setting border colors in OxmlElement, use a literal hex string like '000000', NOT a method call.
 - Always import OxmlElement: `from docx.oxml import OxmlElement`
 - Always import qn exactly like this: `from docx.oxml.ns import qn`
