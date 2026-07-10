@@ -38,6 +38,7 @@ CRITICAL PYTHON-DOCX API RULES (DO NOT VIOLATE):
 - Use `paragraph.add_run("")` if you need to ensure a run exists.
 - For horizontal lines, create a paragraph border using OxmlElement with proper namespace.
 - NEVER wrap `child.tag` in `qn()` when checking element tags (e.g. `if child.tag == qn('w:tblBorders')`). `child.tag` is already namespaced. Calling `qn(child.tag)` will cause `KeyError: '{http'`.
+- NEVER pass fully-qualified namespace URIs like `'{http://...}tag'` to `OxmlElement()`. ALWAYS use the prefix form, e.g. `'w:tag'`.
 - `OxmlElement` (like `CT_PPr`) does NOT have an `insert_before` method. Use `.append(element)` instead.
 """
 

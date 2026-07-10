@@ -171,6 +171,22 @@ def safe_validate_int_in_range(cls, value, min_inclusive, max_inclusive):
     if not isinstance(value, int):
         value = int(value)
 docx.oxml.simpletypes.XsdInt.validate_int_in_range = safe_validate_int_in_range
+
+import docx.oxml.parser
+original_OxmlElement = docx.oxml.parser.OxmlElement
+def safe_OxmlElement(nsptag_str, attrs=None, nsdecls=None):
+    if isinstance(nsptag_str, str) and nsptag_str.startswith('{http'):
+        tag_name = nsptag_str.split('}')[-1]
+        nsptag_str = f"w:{tag_name}"
+    return original_OxmlElement(nsptag_str, attrs, nsdecls)
+docx.oxml.parser.OxmlElement = safe_OxmlElement
+import docx.oxml
+docx.oxml.OxmlElement = safe_OxmlElement
+try:
+    import docx.oxml.shared
+    docx.oxml.shared.OxmlElement = safe_OxmlElement
+except ImportError:
+    pass
 """
     if monkey_patch not in fixed:
         fixed = monkey_patch + fixed
