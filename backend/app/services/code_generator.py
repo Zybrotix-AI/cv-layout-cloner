@@ -28,6 +28,9 @@ REQUIREMENTS:
 CRITICAL PYTHON-DOCX API RULES (DO NOT VIOLATE):
 - RGBColor(r, g, b) IS the color value. It has NO `.rgb` attribute. Use str(color_var) to get the hex, NOT color_var.rgb.hex().
 - To set font color: use `run.font.color.rgb = RGBColor(r, g, b)`. NEVER use `font.color = RGBColor(...)` — the color property has NO setter. You must access `.color.rgb`.
+- `OxmlElement` (like `tblBorders`) DOES NOT have a `.first_child_found_in` method. Use `.find(qn(tag))` instead.
+- `OxmlElement` DOES NOT accept a `text` keyword argument (e.g. `OxmlElement('w:t', text=...)` is INVALID). You must set it after creation: `wt = OxmlElement('w:t'); wt.text = '...'`
+- When generating the hardcoded JSON data dictionary, DOUBLE CHECK your commas! A missing comma will cause a SyntaxError.
 - When setting border colors in OxmlElement, use a literal hex string like '000000', NOT a method call.
 - Always import OxmlElement: `from docx.oxml import OxmlElement`
 - Always import qn exactly like this: `from docx.oxml.ns import qn`

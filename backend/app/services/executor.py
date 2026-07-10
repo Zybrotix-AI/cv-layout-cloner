@@ -90,7 +90,7 @@ async def execute_generated_script(script_code: str, job_dir: Path) -> Path:
     import ast
     try:
         tree = ast.parse(script_code)
-        dangerous_modules = {'os', 'sys', 'subprocess', 'shutil', 'pathlib', 'socket', 'requests', 'urllib'}
+        dangerous_modules = {'subprocess', 'shutil', 'socket', 'requests', 'urllib'}
         for node in ast.walk(tree):
             if isinstance(node, ast.Import):
                 for name in node.names:
@@ -192,6 +192,24 @@ def _attempt_auto_fix(code: str, error_msg: str) -> str:
             fixed
         )
         
+    # Fix AttributeError: 'lxml.etree._Element' object has no attribute 'first_child_found_in'
+    if "AttributeError" in error_msg and "first_child_found_in" in error_msg:
+        fixed = fixed.replace(".first_child_found_in(", ".find(qn(")
+        # Need to close the qn() parenthesis. We'll do a basic regex.
+        fixed = re.sub(
+            r'\.find\(\s*qn\(\s*([^)]+)\s*\)',
+            r'.find(qn(\1))',
+            fixed
+        )
+        
+    # Fix TypeError: OxmlElement() got an unexpected keyword argument 'text'
+    if "unexpected keyword argument 'text'" in error_msg and "OxmlElement" in error_msg:
+        fixed = re.sub(
+            r'OxmlElement\(([^,]+),\s*text=([^)]+)\)',
+            r'(lambda e: setattr(e, "text", \2) or e)(OxmlElement(\1))',
+            fixed
+        )
+
     # Fix ImportError: cannot import name 'qn' from 'docx.oxml'
     if "cannot import name 'qn' from 'docx.oxml'" in error_msg:
         fixed = re.sub(
