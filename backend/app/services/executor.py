@@ -171,8 +171,8 @@ def _attempt_auto_fix(code: str, error_msg: str) -> str:
     # Fix AttributeError on RGBColor
     if "AttributeError" in error_msg and "RGBColor" in error_msg:
         # Fix string formatting hallucination: '%02x%02x%02x' % color.rgb
-        fixed = re.sub(r"'%02x%02x%02x' % (\w+)\.rgb", r"str(\1)", fixed)
-        fixed = re.sub(r'"%02x%02x%02x" % (\w+)\.rgb', r"str(\1)", fixed)
+        fixed = re.sub(r"'%02[xX]%02[xX]%02[xX]' % (\w+)\.rgb", r"str(\1)", fixed)
+        fixed = re.sub(r'"%02[xX]%02[xX]%02[xX]" % (\w+)\.rgb', r"str(\1)", fixed)
         # Fix f-string hallucination: f'{color.rgb:06X}'
         fixed = re.sub(r"f['\"]\{([^:}]+)(?:\.rgb)?(?::06[xX]|:[xX])\}['\"]", r"str(\1)", fixed)
         # Fix f-string hallucination: f'{color.r:02x}{color.g:02x}{color.b:02x}'
