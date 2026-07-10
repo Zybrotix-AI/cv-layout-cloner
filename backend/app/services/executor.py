@@ -187,6 +187,13 @@ try:
     docx.oxml.shared.OxmlElement = safe_OxmlElement
 except ImportError:
     pass
+
+import docx.enum.text
+import docx.enum.table
+if not hasattr(docx.enum.text, 'WD_ALIGN_VERTICAL'):
+    docx.enum.text.WD_ALIGN_VERTICAL = docx.enum.table.WD_ALIGN_VERTICAL
+if not hasattr(docx.enum.text, 'WD_CELL_VERTICAL_ALIGNMENT'):
+    docx.enum.text.WD_CELL_VERTICAL_ALIGNMENT = docx.enum.table.WD_ALIGN_VERTICAL
 """
     if monkey_patch not in fixed:
         fixed = monkey_patch + fixed
