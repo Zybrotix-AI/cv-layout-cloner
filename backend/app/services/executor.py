@@ -161,13 +161,26 @@ def _attempt_auto_fix(code: str, error_msg: str) -> str:
     """
     fixed = code
 
+    # Fix missing commas in dictionary/json data structures (causes SyntaxError)
+    if "SyntaxError" in error_msg:
+        fixed = re.sub(r'(["\'\]\}])\s*\n\s*(["\']\w+["\']\s*:)', r'\1,\n\2', fixed)
+        # Also catch missing commas in lists (e.g., "string" \n "string")
+        # but only if preceded by a comma on some previous element, or inside brackets.
+        # It's safer to just fix the dictionary keys for now since that's the most common failure.
+
     # Fix AttributeError on RGBColor
     if "AttributeError" in error_msg and "RGBColor" in error_msg:
         # Fix string formatting hallucination: '%02x%02x%02x' % color.rgb
         fixed = re.sub(r"'%02x%02x%02x' % (\w+)\.rgb", r"str(\1)", fixed)
         fixed = re.sub(r'"%02x%02x%02x" % (\w+)\.rgb', r"str(\1)", fixed)
+        # Fix f-string hallucination: f'{color.rgb:06X}'
+        fixed = re.sub(r"f['\"]\{([^:}]+)(?:\.rgb)?(?::06[xX]|:[xX])\}['\"]", r"str(\1)", fixed)
+        # Fix f-string hallucination: f'{color.r:02x}{color.g:02x}{color.b:02x}'
+        fixed = re.sub(r"f['\"]\{([^:]+)\.r:02[xX]\}\{\1\.g:02[xX]\}\{\1\.b:02[xX]\}['\"]", r"str(\1)", fixed)
         # Remove any remaining .rgb references on color objects
-        fixed = re.sub(r'\.rgb(?=[\.\)\s,\]]|$)', '', fixed)
+        fixed = re.sub(r'\.rgb(?=[\.\)\s,\]:]|$)', '', fixed)
+        # Remove any .r, .g, .b references (risky, but usually safe in color contexts if not caught above)
+        # It's better to just catch the f-string format above.
         # Fix hex() calls on RGBColor
         fixed = re.sub(r'\.hex\(\)', '', fixed)
 
