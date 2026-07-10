@@ -163,8 +163,11 @@ def _attempt_auto_fix(code: str, error_msg: str) -> str:
 
     # Fix AttributeError on RGBColor
     if "AttributeError" in error_msg and "RGBColor" in error_msg:
+        # Fix string formatting hallucination: '%02x%02x%02x' % color.rgb
+        fixed = re.sub(r"'%02x%02x%02x' % (\w+)\.rgb", r"str(\1)", fixed)
+        fixed = re.sub(r'"%02x%02x%02x" % (\w+)\.rgb', r"str(\1)", fixed)
         # Remove any remaining .rgb references on color objects
-        fixed = re.sub(r'\.rgb(?=[\.\)])', '', fixed)
+        fixed = re.sub(r'\.rgb(?=[\.\)\s,\]]|$)', '', fixed)
         # Fix hex() calls on RGBColor
         fixed = re.sub(r'\.hex\(\)', '', fixed)
 
