@@ -179,14 +179,6 @@ def safe_OxmlElement(nsptag_str, attrs=None, nsdecls=None):
         tag_name = nsptag_str.split('}')[-1]
         nsptag_str = f"w:{tag_name}"
     return original_OxmlElement(nsptag_str, attrs, nsdecls)
-docx.oxml.parser.OxmlElement = safe_OxmlElement
-import docx.oxml
-docx.oxml.OxmlElement = safe_OxmlElement
-try:
-    import docx.oxml.shared
-    docx.oxml.shared.OxmlElement = safe_OxmlElement
-except ImportError:
-    pass
 
 import docx.enum.text
 import docx.enum.table
@@ -201,9 +193,9 @@ if not hasattr(docx.enum.text, 'WD_CELL_VERTICAL_ALIGNMENT'):
     # Fix missing commas in dictionary/json data structures (causes SyntaxError)
     if "SyntaxError" in error_msg:
         fixed = re.sub(r'(["\'\]\}])\s*\n\s*(["\']\w+["\']\s*:)', r'\1,\n\2', fixed)
-        # Also catch missing commas in lists (e.g., "string" \n "string")
-        # but only if preceded by a comma on some previous element, or inside brackets.
-        # It's safer to just fix the dictionary keys for now since that's the most common failure.
+
+    # Force AI to use safe_OxmlElement natively to avoid namespace issues
+    fixed = re.sub(r'\bOxmlElement\(', 'safe_OxmlElement(', fixed)
 
     # Fix AttributeError on RGBColor
     if "AttributeError" in error_msg and "RGBColor" in error_msg:
