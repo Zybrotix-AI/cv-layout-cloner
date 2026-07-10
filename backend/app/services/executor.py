@@ -161,6 +161,20 @@ def _attempt_auto_fix(code: str, error_msg: str) -> str:
     """
     fixed = code
 
+    # Inject monkey patch to fix python-docx `table.add_row()` crash on massive grid column widths
+    monkey_patch = """
+import docx.oxml.simpletypes
+@classmethod
+def safe_validate_int_in_range(cls, value, min_inclusive, max_inclusive):
+    if value > max_inclusive: value = max_inclusive
+    if value < min_inclusive: value = min_inclusive
+    if not isinstance(value, int):
+        value = int(value)
+docx.oxml.simpletypes.XsdInt.validate_int_in_range = safe_validate_int_in_range
+"""
+    if monkey_patch not in fixed:
+        fixed = monkey_patch + fixed
+
     # Fix missing commas in dictionary/json data structures (causes SyntaxError)
     if "SyntaxError" in error_msg:
         fixed = re.sub(r'(["\'\]\}])\s*\n\s*(["\']\w+["\']\s*:)', r'\1,\n\2', fixed)
