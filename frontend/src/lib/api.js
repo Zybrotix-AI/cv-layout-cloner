@@ -75,6 +75,7 @@ export async function convertCV(contentCV, sampleCV, onProgress) {
  * @returns {string} Full URL
  */
 export function getDownloadUrl(path) {
+  if (!path) return '';
   if (path.startsWith('http')) return path;
   let base = import.meta.env.VITE_API_URL || 'http://localhost:2222';
   if (base.endsWith('/api')) {

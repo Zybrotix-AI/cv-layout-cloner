@@ -7,7 +7,7 @@ export default defineConfig({
     port: 1111,
     proxy: {
       '/api': {
-        target: 'http://localhost:2222',
+        target: 'http://backend:2222',
         changeOrigin: true,
       },
     },
