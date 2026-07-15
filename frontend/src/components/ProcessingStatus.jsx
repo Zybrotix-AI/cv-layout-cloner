@@ -5,6 +5,7 @@
  * @param {'idle'|'uploading'|'processing'|'done'|'error'} props.status
  * @param {number} props.progress - 0-100
  * @param {string|null} props.error - Error message
+ */
 export default function ProcessingStatus({ status, progress, stepLabel, eta, error }) {
   if (status === 'idle') return null;
 
