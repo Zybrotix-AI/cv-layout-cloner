@@ -5,8 +5,7 @@
  * @param {'idle'|'uploading'|'processing'|'done'|'error'} props.status
  * @param {number} props.progress - 0-100
  * @param {string|null} props.error - Error message
- */
-export default function ProcessingStatus({ status, progress, error }) {
+export default function ProcessingStatus({ status, progress, stepLabel, eta, error }) {
   if (status === 'idle') return null;
 
   const statusConfig = {
@@ -68,7 +67,7 @@ export default function ProcessingStatus({ status, progress, error }) {
         </div>
 
         {/* Progress percentage */}
-        {(status === 'uploading' || status === 'processing') && (
+        {(status === 'started' || status === 'uploading' || status === 'processing') && (
           <span className="text-sm font-mono text-white/50">
             {Math.round(progress)}%
           </span>
@@ -76,22 +75,30 @@ export default function ProcessingStatus({ status, progress, error }) {
       </div>
 
       {/* Progress bar */}
-      {(status === 'uploading' || status === 'processing') && (
+      {(status === 'started' || status === 'uploading' || status === 'processing') && (
         <div className="progress-bar mt-4">
           <div
-            className="progress-bar-fill"
+            className="progress-bar-fill transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
       )}
 
-      {/* Processing steps */}
-      {status === 'processing' && (
-        <div className="mt-4 space-y-2">
-          <StepIndicator label="Content extraction" done={progress > 30} active={progress <= 30} />
-          <StepIndicator label="Template analysis" done={progress > 55} active={progress > 30 && progress <= 55} />
-          <StepIndicator label="Content mapping" done={progress > 75} active={progress > 55 && progress <= 75} />
-          <StepIndicator label="Rendering output" done={progress > 90} active={progress > 75 && progress <= 90} />
+      {/* Dynamic Processing Step */}
+      {(status === 'started' || status === 'uploading' || status === 'processing') && (
+        <div className="mt-5 flex items-center justify-between border-t border-white/5 pt-4">
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded-full border-2 border-brand-400 border-t-transparent animate-spin" />
+            <span className="text-sm text-white/70">
+              {stepLabel || 'Working...'}
+            </span>
+          </div>
+          
+          {eta !== null && eta > 0 && (
+            <div className="text-xs font-mono text-white/40 bg-white/5 px-2 py-1 rounded">
+              ~{eta}s remaining
+            </div>
+          )}
         </div>
       )}
     </div>

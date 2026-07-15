@@ -12,6 +12,8 @@ export default function App() {
     sampleFile,
     status,
     progress,
+    stepLabel,
+    eta,
     result,
     error,
     canConvert,
@@ -113,7 +115,7 @@ export default function App() {
               </div>
 
               {/* Processing status */}
-              <ProcessingStatus status={status} progress={progress} error={error} />
+              <ProcessingStatus status={status} progress={progress} stepLabel={stepLabel} eta={eta} error={error} />
 
               {/* Results — Fidelity badge & downloads */}
               {isDone && (

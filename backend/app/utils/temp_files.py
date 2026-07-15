@@ -11,6 +11,7 @@ import logging
 from pathlib import Path
 from contextlib import contextmanager
 from typing import Generator
+import json
 
 from app.config import settings
 
@@ -111,3 +112,42 @@ def save_upload(content: bytes, filename: str, job_dir: Path) -> Path:
 def get_output_path(job_dir: Path, suffix: str) -> Path:
     """Get a path for an output file in the job directory."""
     return job_dir / f"output{suffix}"
+
+
+def update_job_status(job_dir: Path, status_data: dict) -> None:
+    """
+    Write or update the status.json file in the job directory.
+    """
+    status_file = job_dir / "status.json"
+    
+    # Read existing if available to merge
+    current_data = {}
+    if status_file.exists():
+        try:
+            with open(status_file, "r", encoding="utf-8") as f:
+                current_data = json.load(f)
+        except Exception:
+            pass
+            
+    current_data.update(status_data)
+    
+    # Atomic-ish write by writing and renaming
+    temp_file = job_dir / "status.json.tmp"
+    with open(temp_file, "w", encoding="utf-8") as f:
+        json.dump(current_data, f)
+    temp_file.replace(status_file)
+
+
+def get_job_status(job_dir: Path) -> dict:
+    """
+    Read the status.json file from the job directory.
+    """
+    status_file = job_dir / "status.json"
+    if not status_file.exists():
+        return {"status": "started", "progress": 0}
+        
+    try:
+        with open(status_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {"status": "started", "progress": 0}

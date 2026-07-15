@@ -10,6 +10,8 @@ export function useConversion() {
   const [sampleFile, setSampleFile] = useState(null);
   const [status, setStatus] = useState('idle'); // idle | uploading | processing | done | error
   const [progress, setProgress] = useState(0);
+  const [stepLabel, setStepLabel] = useState('');
+  const [eta, setEta] = useState(null);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const abortRef = useRef(null);
@@ -28,10 +30,19 @@ export function useConversion() {
       const response = await convertCV(
         contentFile,
         sampleFile,
-        (pct) => {
-          setProgress(pct);
-          if (pct > 50 && status !== 'processing') {
-            setStatus('processing');
+        (statusData) => {
+          if (typeof statusData === 'number') {
+            // fallback for old api
+            setProgress(statusData);
+          } else {
+            setProgress(statusData.progress || 0);
+            if (statusData.step) setStepLabel(statusData.step);
+            if (statusData.estimated_remaining_seconds !== undefined) {
+              setEta(statusData.estimated_remaining_seconds);
+            }
+            if (statusData.status && statusData.status !== 'done' && statusData.status !== 'error') {
+              setStatus(statusData.status);
+            }
           }
         }
       );
@@ -50,6 +61,8 @@ export function useConversion() {
     setSampleFile(null);
     setStatus('idle');
     setProgress(0);
+    setStepLabel('');
+    setEta(null);
     setResult(null);
     setError(null);
   }, []);
@@ -67,6 +80,8 @@ export function useConversion() {
     sampleFile,
     status,
     progress,
+    stepLabel,
+    eta,
     result,
     error,
     canConvert,

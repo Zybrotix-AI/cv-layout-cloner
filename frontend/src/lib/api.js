@@ -16,64 +16,56 @@ export async function convertCV(contentCV, sampleCV, onProgress) {
   formData.append('content_cv', contentCV);
   formData.append('sample_cv', sampleCV);
 
-  const xhr = new XMLHttpRequest();
-  
+  // 1. Start the job
+  const startResponse = await fetch(`${API_BASE}/convert`, {
+    method: 'POST',
+    headers: { 'ngrok-skip-browser-warning': '69420' },
+    body: formData,
+  });
+
+  if (!startResponse.ok) {
+    let errorMsg = 'Failed to start conversion';
+    try {
+      const errorData = await startResponse.json();
+      errorMsg = errorData.detail || errorData.error || errorMsg;
+    } catch (e) {}
+    throw new Error(errorMsg);
+  }
+
+  const { job_id } = await startResponse.json();
+
+  // 2. Poll for status
   return new Promise((resolve, reject) => {
-    xhr.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable && onProgress) {
-        const percent = Math.round((e.loaded / e.total) * 50); // Upload is 0-50%
-        onProgress(percent);
+    const pollInterval = setInterval(async () => {
+      try {
+        const statusResponse = await fetch(`${API_BASE}/status/${job_id}`, {
+          headers: { 'ngrok-skip-browser-warning': '69420' },
+        });
+
+        if (!statusResponse.ok) {
+          throw new Error('Failed to fetch status');
+        }
+
+        const statusData = await statusResponse.json();
+
+        // Trigger progress callback with full status object
+        if (onProgress) {
+          onProgress(statusData);
+        }
+
+        if (statusData.status === 'done') {
+          clearInterval(pollInterval);
+          resolve(statusData.result);
+        } else if (statusData.status === 'error') {
+          clearInterval(pollInterval);
+          reject(new Error(statusData.error || 'Conversion failed during processing'));
+        }
+      } catch (err) {
+        // Don't kill the polling on a single network blip, just log it.
+        // If it persists, maybe add a retry counter.
+        console.warn('Status polling error:', err);
       }
-    });
-
-    xhr.addEventListener('load', () => {
-      if (xhr.status >= 200 && xhr.status < 300) {
-        try {
-          const response = JSON.parse(xhr.responseText);
-          onProgress?.(100);
-          resolve(response);
-        } catch (e) {
-          reject(new Error('Invalid response from server'));
-        }
-      } else {
-        try {
-          const error = JSON.parse(xhr.responseText);
-          reject(new Error(error.detail || error.error || `Server error: ${xhr.status}`));
-        } catch {
-          reject(new Error(`Server error: ${xhr.status}`));
-        }
-      }
-    });
-
-    xhr.addEventListener('error', () => {
-      reject(new Error('Network error — is the backend running?'));
-    });
-
-    xhr.addEventListener('timeout', () => {
-      reject(new Error('Request timed out — the conversion may take up to 2 minutes'));
-    });
-
-    xhr.open('POST', `${API_BASE}/convert`);
-    xhr.setRequestHeader('ngrok-skip-browser-warning', '69420');
-    xhr.timeout = 180000; // 3 minute timeout
-    xhr.send(formData);
-
-    // Simulate processing progress after upload completes
-    let processingInterval;
-    xhr.upload.addEventListener('loadend', () => {
-      let progress = 50;
-      processingInterval = setInterval(() => {
-        if (progress < 90) {
-          progress += Math.random() * 5;
-          onProgress?.(Math.min(90, Math.round(progress)));
-        }
-      }, 1000);
-    });
-
-    const originalLoad = xhr.onload;
-    xhr.addEventListener('loadend', () => {
-      clearInterval(processingInterval);
-    });
+    }, 1000); // Poll every 1 second
   });
 }
 
